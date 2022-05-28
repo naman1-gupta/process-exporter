@@ -22,7 +22,7 @@ func main() {
 
 	app.Get("/metrics", getMetrics)
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":9101"))
 }
 
 func getMetrics(c *fiber.Ctx) error {
@@ -44,9 +44,9 @@ func getMetrics(c *fiber.Ctx) error {
 		return processes[i].MemoryPercent > processes[j].MemoryPercent
 	})
 
-	metricString := ""
+	metricString := "#HELP top_processes_by_memory mem utilization by top 5 processes\n#TYPE top_processes_by_memory gauge\n"
 	for _, i := range processes[:5] {
-		metricString += "top_processes_by_memory_cpu{app=\"" + i.Command + "\"} " + fmt.Sprintf("%f", i.CPUPercent) + " " + fmt.Sprintf("%f", i.MemoryPercent) + "\n"
+		metricString += fmt.Sprintf("top_processes_by_memory{app=\"%s\", pid=\"%v\"} %f\n", i.Command, i.p.Pid ,i.MemoryPercent)
 	}
 
 	return c.SendString(metricString)
